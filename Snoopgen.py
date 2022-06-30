@@ -1,6 +1,7 @@
- STABLE	 = 0
- VALQUAL = 2
- CLOCK = 3
+import sys
+STABLE = 0
+VALQUAL = 2
+CLOCK = 3
 WIERD = 4
 
 INPUT = 0
@@ -12,7 +13,8 @@ BUFSIZE =  1000
 
 MAXPHASES  = 4
 class Name(object):
-    __slots__ = ['name;', 'direction' , 'isvector' , 'index1' , 'index2' , 'controldir', 'next']
+    __slots__ = ['name', 'direction' , 'isvector' , 'index1' , 'index2' , 'controldir', 'next']
+    self.ttype ; 
     self.argnext = None
     self.next = None ; 
     self.controlname, 
@@ -157,3 +159,233 @@ def prolog(progname , filename):
     printf("\n// Remember to run Verilog with -x");
     printf(" if any variables are subscripted\n\n\n");
 def commentout():
+    tmp = Name()
+    i = 1  ; 
+    printf("// %d Clock phases:", numclocks);
+    for i in range(numclocks):
+        printf(" %s", clock[i].name);
+    printf("\n");
+    while(tmp.next!=None):
+        printf("// Input, Verilog: %s, irsim: %s",
+	    tmp.name, tmp.rsimname.name);
+        tmp.next = tmp
+        if (tmp.isvector):
+            printf(", vector[%d:%d]\n", tmp.index1, tmp.index2);
+        else:
+            printf("\n");
+    tmp = outlist
+    while(tmp.next!=None):
+        printf("// Output, Verilog: %s, irsim: %s, ",tmp->name, tmp->rsimname->name);
+        if(tmp.isvector):
+            printf("vector[%d:%d], ", tmp->index1, tmp->index2);
+        if(tmp.ttype==VALID):
+            printf("Valid phase %d\n", tmp->phase);
+        elif (tmp.ttype == STABLE) printf("Stable phase %d\n", tmp->phase);
+        elif (tmp.ttype == QUAL) printf("Qualified phase %d\n", tmp->phase);
+        else printf("Wierd??\n");
+        tmp.outlist = tmp 
+    tmp = bilist
+    while(tmp.next!=None):
+        printf("// Inout, Verilog: %s, irsim: %s, ",
+	    tmp->name, tmp->rsimname->name);
+        if (tmp.isvector):
+            printf("vector[%d:%d], ", tmp->index1, tmp->index2);
+        if (tmp.ttype==VALID):
+            printf("Valid phase %d\n", tmp->phase);
+        elif(tmp.ttype==STABLE):
+            printf("Stable phase %d\n", tmp->phase);
+        else: 
+            printf("Wierd??\n")
+        tmp.next = tmp ; 
+def header():
+    tmp = Name()
+    brk = 0 
+    printf("\n\nmodule snooper(");
+    tmp=arglist
+    while(tmp.argnext!=None):
+        if (!(brk++%4)):
+        printf("\n\t");
+        printf("%s", tmp.name);
+        if(tmp.argnext):
+            printf("%s", tmp->name);
+    printf(");\n\n");
+    tmp = arglist 
+    while(tmp.argnext!=None):
+        printf("input ");
+        if (tmp.isvector) :
+            printf("[%d:%d] ", tmp->index1, tmp->index2);
+        printf("%s;\n", tmp->name);
+def loginputs():
+    tmp = Name()
+    i = 0 ; 
+    printf("\n// One always block per input\n\n");
+    tmp = inlist ;
+    while(tmp.next!=None):
+        if (tmp->isvector) {
+            printf("always @(%s)\nbegin\n", tmp.name)
+            i1 = tmp.index1 
+            j1 = tmp.index2
+            for i1 in range(i1 , j1 , -1):
+                printf("\t$rsim_log_input(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+            printf("\tend\n");
+        else:
+            printf("always @(%s or %s)\n\tif (%s == %d) ",tmp->name, tmp->controlname->name,tmp->controlname->name, tmp->controldir);
+            printf("$rsim_log_input(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+def letgo():
+    tmp = Name()
+    printf("\n// Let go of inouts\n\n");
+    tmp = bilist 
+    while(tmp.next!=None):
+        printf("always @(%s %s)",tmp->controldir ? "negedge" : "posedge", tmp->controlname->name);
+        if(tmp.isvector):
+            printf("\nbegin\n");
+            i1 = tmp.index1 
+            j1 = tmp.index2 
+            for i in range(i1 , j1 , -1):
+                printf("\t$rsim_update_value(\"%s[%d]\",\"x\");\n",tmp->rsimname->name, i);
+            printf("end\n");
+        else:
+            printf(" $rsim_update_value(\"%s\",\"x\");\n",tmp->rsimname->name);
+def check():
+    i = 0  , c = 1  ;
+    tmp = Name()
+    printf("\n// Check stable signals\n\n");
+    for c in range (1,numclocks):
+	    printf("always @(%s)\nbegin\n", clock[c]->name);
+        tmp = outlist ; 
+        while(tmp.next!=None):
+            if ((tmp.ttype==STABLE)and(tmp.phase==c)):
+                if (tmp->isvector):
+                    i1 = tmp.index1
+                    j1 = tmp.index2 
+                    for i in range(i1, j1 , -1 ):
+                        printf("\t$rsim_log_output(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+                else:
+                    printf("\t$rsim_log_output(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+        tmp = bilist  
+        while(tmp.next!=None):
+            if((tmp.ttype==STABLE)and(tmp.phase==c)):
+                if(tmp.isvector):
+                    printf("\tif (%s == %d)\n\tbegin\n",tmp->controlname->name, !tmp->controldir);
+                    i1 = tmp.index1  ; 
+                    j1 = tmp.index2 ; 
+                    for i in range(i1 , j1 , -1 ):
+                        printf("\t$rsim_log_output(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+                    printf("\tend\n");
+                else:
+                    printf("\tif (%s == %d)\n",tmp->controlname->name, !tmp->controldir);
+                    printf("\t\t$rsim_log_output(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+        printf("end\n\n")
+    printf("\n// Check valid signals\n\n");
+    for c in range(1,numclocks+1):
+        printf("always @(negedge %s)\nbegin\n", clock[c]->name);
+        tmp = outlist ; 
+        while(tmp.next!=None):
+            if ((tmp.ttype==VALID)and(tmp.phase==c)):
+                if (tmp->isvector):
+                    i1 = tmp.index1 ; 
+                    j1 = tmp.index2
+                    for i in range(i1 , j1 , -1):
+                        printf("\t$rsim_log_output(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+                else:
+                    printf("\t$rsim_log_output(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+        tmp = bilist ; 
+
+        while(tmp.next!= None):
+            if ((tmp.ttype==VALID)and(tmp.phase==c)):
+                if(tmp.isvector):
+                    printf("\tif (%s == %d)\n\tbegin\n",tmp->controlname->name, !tmp->controldir);
+                    i1 = tmp.index1 ; 
+                    j1 = tmp.index2
+                    for i in range(i1,j1,-1):
+                        printf("\t$rsim_log_output(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+                        printf("\tend\n")
+                else:
+                    printf("\tif (%s == %d)\n",tmp->controlname->name, !tmp->controldir);
+		            printf("\t\t$rsim_log_output(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+    	printf("end\n\n");        
+    printf("\n// Check qualified signals\n\n");
+    for c in range(1,numclocks):
+        printf("always @(%s)\nbegin\n", clock[c]->name);
+        tmp = outlist
+        while(tmp.next!=None):
+            if ((tmp.ttype == QUAL) and (tmp.phase == c)):
+                if(tmp.isvector):
+                    printf("\tif (%s == %d)\n\tbegin\n",tmp->controlname->name, !tmp->controldir);
+                    i1 = tmp.index1 ; 
+                    j1 = tmp.index2 ; 
+                    for i in range(i1,j1,-1):
+                        printf("\t$rsim_log_output(%s[%d], \"%s[%d]\");\n",tmp->name, i, tmp->rsimname->name, i);
+                    printf("\tend\n");
+                else:
+                    printf("\tif (%s == %d)\n",tmp->controlname->name, !tmp->controldir);
+		            printf("\t\t$rsim_log_output(%s, \"%s\");\n",tmp->name, tmp->rsimname->name);
+        printf("end\n\n");
+
+if(len(sys.argv)!=2):
+    fprintf(stderr, "Usage: %s infile\n", argv[0]);
+    exit()
+try:
+    infile = open(sys.argv[1] , "r")
+except:
+    fprintf(stderr, "%s: cannot open %s\n", argv[0], argv[1]);
+    exit()
+lineo = 0 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+     
+
+
+
+
+        
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+     
+
+    
+        
+
+
+
+
+
+

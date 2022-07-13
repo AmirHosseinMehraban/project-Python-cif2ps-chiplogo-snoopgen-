@@ -337,10 +337,37 @@ def chiplogo():
   if(DEBUG==1):
     print("after close\n")
  
- 
-  
-
-
+def shrink_array(array,x,y,width)
+  for i in range(x+width-1):
+    for j in range(y+width-1):
+      if(i>width-1 or j>width-1 ):
+        array[i][j]=array[i+width][j+width]:
+def smooth_array(array,x,y,threshold,width):
+  int column,row,*array2[ARRAY_SIZE],tmp,i,j,total=0;
+  array2[]
+  for i in range(ARRAY_SIZE):
+    array2.append(int(ARRAY_YSIZE+2*width))
+  for column in range(y):
+    for row in range(x):
+      array2[row][column]=0
+  for i in range(-(width/2),i<width/2+1):
+    for j in range(-(width/2),width/2+1):
+      total+=(width/2-max(abs(i),abs(j))+1)
+  for column in range(width,y+width-1):
+    for row in range(width,x+width):
+      tmp=0;
+      for i in range(-(width/2),width/2+1):
+  for j in range(-(width/2),width/2+1):
+	  tmp+=array[row+i][column+j]*(width/2-max(abs(i),abs(j))+1);
+  if(16*tmp>total*threshold):
+     array2[row][column]=1
+  else:
+    array2[row][column]=0
+  for column in range(y):
+    for row in range(x):
+      array[row][column]=array2[row][column]
+  for i in range(ARRAY_SIZE):
+    array2[i]=""
 
 
 

@@ -39,7 +39,7 @@ smooth_after=0
 image_out[ARRAY_SIZE]
 ARRAY_XSIZE=1
 ARRAY_YSIZE=1
-#char *input_file,*output_file,*cif_layer,*magic_layer,*magic_tech;
+
 DEBUG=0
 view_array=1000
 array[ARRAY_SIZE]
@@ -66,7 +66,7 @@ def main(argc,argv):#define main function for argc and argv
     argv+=1
     s=argv[0]+1
     if s=='m':
-      magic=1;
+      magic=1
       argv+=1
       magic_layer+=argv
       argc-=1
@@ -94,7 +94,7 @@ def main(argc,argv):#define main function for argc and argv
     elif s=='h':
       error_mess()
     elif s=='e':
-      error_correct=1;
+      error_correct=1
     elif s=='w':
       min_width=int(argv+1)
       argc-=1
@@ -104,7 +104,7 @@ def main(argc,argv):#define main function for argc and argv
     else:
       break
   if (argc):
-    input=1;
+    input=1
     argv+=1
     input_file+=argv
     argc-=1
@@ -165,8 +165,9 @@ def error_mess():
   exit(1)
 
 def chiplogo():
-  FILE	*fpin,*fpout
-  char	tmp_c
+  fpin
+  fpout
+  tmp_c
   width=1
   space=1
   scale=1
@@ -175,10 +176,10 @@ def chiplogo():
   y=0
   base=1
   junk=0
-  int  j,row,column
   max_col=35
-  int 	max_row
-  int	x_corner,y_corner
+  max_row
+  x_corner
+  y_corner
   threshold_after=4
   threshold_before=4
   scale=scale_factor
@@ -191,9 +192,6 @@ def chiplogo():
     print("cannot open input file\n")
     return
   
-  
-  
-  ##tmp= (char *)malloc(2048*sizeof(char));
   if tmp==NULL:
     print("there is not enough memory\n")
     close(fpin)
@@ -245,7 +243,7 @@ def chiplogo():
 	#print(k-((k/x)*x),(k/x),array[k-((k/x)*x)][k/x])
   #i have to correct print 
   if DEBUG==1:
-    print("before enlarge\n");
+    print("before enlarge\n")
   enlarge_array(array,x,y,width+2)
   if(DEBUG==1):
     print("after enlarge\n")
@@ -287,11 +285,6 @@ def chiplogo():
   if magic_choice==1 and cif_choice ==0:
     if (fpout==fopen(output_file,"w")) == NULL: 
         print("cannot open output file\n")
-	  #return
-
-      #fprintf(fpout,"magic\ntech  %s\ntimestamp 777777777\n", magic_tech);
-      #fprintf(fpout,"<< %s >>\n", magic_layer);
-      #for(column=0;column<y;column++){
   row=0
   for row in range(x):
 	  if array[row][column] ==1:
@@ -299,28 +292,22 @@ def chiplogo():
 	    y_corner=y-column
 	    y_corner=base
 	    x_corner=row*base
-	    #fprintf(fpout,"rect %d %d %d %d\n",x_corner,y_corner,x_corner+base,y_corner+base);
-
-      #fprintf(fpout,"<< end >>\n");
     else:
-      if((fpout=fopen(output_file,"w")) == NULL) {
+      if (fpout=fopen(output_file,"w")) == NULL:
         print("cannot open output file\n")
         return
-    
-    #fprintf(fpout,"DS 1 %d 2;\n9 logo;\nL %s;\n", cif_lambda, cif_layer);
+
     column=0
     for column in range(y):
       row=0
       for row in range(x):
 	if array[row][column] ==1:
-	  base=10*scale*width;
-	  y_corner=y-column;
-	  y_corner*=base;
-	  x_corner=base*row-width;
+	  base=10*scale*width
+	  y_corner=y-column
+	  y_corner*=base
+	  x_corner=base*row-width
  
-	  #fprintf(fpout,"B %d %d %d %d;\n",base+2*width,base,x_corner+(base/2),y_corner+(base/2));
-    #fprintf(fpout,"DF;\nC 1;\nEnd\n");
-  
+
   if DEBUG==1:
     printf("before free\n")
   display_array(x,y)
@@ -337,14 +324,13 @@ def chiplogo():
   if(DEBUG==1):
     print("after close\n")
  
-def shrink_array(array,x,y,width)
+def shrink_array(array,x,y,width):
   for i in range(x+width-1):
     for j in range(y+width-1):
       if(i>width-1 or j>width-1 ):
-        array[i][j]=array[i+width][j+width]:
+        array[i][j]=array[i+width][j+width]
 def smooth_array(array,x,y,threshold,width):
-  int column,row,*array2[ARRAY_SIZE],tmp,i,j,total=0;
-  array2[]
+  array2
   for i in range(ARRAY_SIZE):
     array2.append(int(ARRAY_YSIZE+2*width))
   for column in range(y):
@@ -355,10 +341,11 @@ def smooth_array(array,x,y,threshold,width):
       total+=(width/2-max(abs(i),abs(j))+1)
   for column in range(width,y+width-1):
     for row in range(width,x+width):
-      tmp=0;
+      tmp=0
       for i in range(-(width/2),width/2+1):
+        pass
   for j in range(-(width/2),width/2+1):
-	  tmp+=array[row+i][column+j]*(width/2-max(abs(i),abs(j))+1);
+	  tmp+=array[row+i][column+j]*(width/2-max(abs(i),abs(j))+1)
   if(16*tmp>total*threshold):
      array2[row][column]=1
   else:
@@ -368,6 +355,82 @@ def smooth_array(array,x,y,threshold,width):
       array[row][column]=array2[row][column]
   for i in range(ARRAY_SIZE):
     array2[i]=""
+def max(i,j):
+  if i<=j:
+     return j
+  else:
+     return i
+
+def enlarge_array(array,x,y,width):
+  for i in range(x+2*width-1,0,-1):
+    for j in range(y+2*width-1,0,-1):
+      if((i<width) or (j<width) or (i>(x-1+width)) or (j>(y-1+width))): 
+	      array[i][j]=0
+      
+      else:
+	      array[i][j]=array[i-width][j-width]
+
+def find_error(array,error,x,y,width,space):
+
+  for i in range(ARRAY_XSIZE+1):
+    for j in range(ARRAY_YSIZE+1):
+      error[i][j]=0
+  for j in range(width,y+width+1):
+    for i in range(width,x+width+1):
+      tmp=0
+      tmp1=0
+      for k in range(width,0,-1):
+	      if(array[i-k][j]+error[i-k][j]>0):
+          tmp1+=1
+          tmp=1
+	      if array[i-k][j]+error[i-k][j]==0 and tmp==1:
+          tmp=2
+  
+	      if tmp1==width or tmp1==0:
+          error[i][j]=0
+	      else:
+        if(tmp==1 and array[i][j]==1):
+          error[i][j]=0
+	      else:
+        if(tmp1<width and tmp1>0 and tmp==1 and array[i][j]==1):
+          error[i][j]=0
+
+        if(tmp1<width and tmp1>0 and tmp==1 and array[i][j]==0):
+          error[i][j]=1
+  for i in range(width,x+width+1):
+    for j in range(width,width+y+1):
+      tmp=0
+      tmp1=0
+      for k in range(width,0,-1):
+	      if(array[i][j-k]+error[i][j-k]>0):
+          tmp1+=1
+          tmp=1
+	      if(array[i][j-k]+error[i][j-k]==0 and tmp==1 ):
+          tmp=2
+ 
+      if(tmp1<width and tmp1>0 and tmp==1 and array[i][j]==0):
+        error[i][j]=1
+
+
+
+def display_array(x,y):
+  j=0
+  print("Here is an approximate view of what you will get!!\n\n")
+  if(view_array==1000):
+    j=y/80+1
+  else: 
+    j=view_array
+  for row in range(0,y,+j):
+    for column in range(0,x,+j):
+      if(array[column][row] == 1):
+        print("*")
+      else: 
+        print(" ")
+    print("\n")
+
+ 
+
+
 
 
 

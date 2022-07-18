@@ -1,6 +1,9 @@
 from array import array
+from ast import arg
 from fileinput import close
+import sys
 
+from zmq import NULL
 
 def find_error(array,error,x,y,width,space):
     tmp=0
@@ -50,92 +53,7 @@ input=0
 output=0
 x_corner
 y_corner
-def main(argc,argv):#define main function for argc and argv
-  cif_layer=""
-  input_file=""
-  output_file=""
-  s=""
-  magic_tech=""
-  magic_layer=""
-  tmp=""
-  cif_layer+="CPG"
-  magic_layer+="poly"
-  magic_tech+="scmos"
-  while ((argc-1) and (argv+1 ) and (argv == '-')):#maybe change after
-    argc-=1
-    argv+=1
-    s=argv[0]+1
-    if s=='m':
-      magic=1
-      argv+=1
-      magic_layer+=argv
-      argc-=1
-    elif s=='c':
-      cif=1
-      argv+=1
-      output_file +="logo.cif"
-      cif_layer +=argv
-      argc-=1
-    elif s=='t':
-      argc-=1
-      argv+=1
-      magic_tech+=argv
-    elif s=='v':
-      view_array=int(argv+1)
-      argc-=1
-    elif s=='A':
-      thresh_after=int(argv+1)
-      smooth_after=1
-      argc-=1
-    elif s=='B':
-      thresh_before=int(argv+1)
-      smooth_before=1
-      argc-=1
-    elif s=='h':
-      error_mess()
-    elif s=='e':
-      error_correct=1
-    elif s=='w':
-      min_width=int(argv+1)
-      argc-=1
-    elif s=='s':
-      scale_factor=float(argv+1)
-      argc-=1
-    else:
-      break
-  if (argc):
-    input=1
-    argv+=1
-    input_file+=argv
-    argc-=1
-    if fpin==open(input_file,"r") == NULL:
-      print("cannot open input file \n")
-      exit(1)
-    
-    close(fpin)
-  if argc:
-    output_file=argv+1
-    argv+=1 
-    argc-=1
-    if (fpout==open(output_file,"w")) == NULL:
-      print("cannot open output file \n")
-      exit(1)
-    close(fpout)
-  if argc:  
-    error_mess()
-    exit(0)
-  if input == 0:  
-    error_mess()
-  if cif ==1 and magic ==1:
-    print("\n you can not have both cif and magic options active, just select one\n")
-    exit(1)
-  if min_width < 1:
-    print("\n the minimum width should be an integer grater than '1'\n")
-    exit(1)
-  chiplogo()
-  print("\n   Logo successfully generated \n")
- 
-  exit(0)
+
 def error_mess():
   print("\n USAGE :\n chiplogo [-c cif_layer_name] [-m magic_layer_name] [-w width] [-s scale] [-t tech_name] [-e] [-v view_array] [-B  threshold_before] [-A threshold_after] input_file [output_file]\n\n")
   print("The options are: \n")
@@ -428,7 +346,110 @@ def display_array(x,y):
         print(" ")
     print("\n")
 
+
+
+'''
+
+
+  here is the main function
+
+
+'''
+cif=0
+magic=0
+input=0
+output=0
+x_corner=0
+y_corner=0
+cif_layer=""
+input_file=""
+output_file=""
+s=""
+magic_tech=""
+magic_layer=""
+tmp=""
+cif_layer+="CPG"
+magic_layer+="poly"
+magic_tech+="scmos"
+argc=len(sys.argv)
+current_argv=0
+
+while ((argc==1) and current_argv>0 and (sys.argv == '-')):#maybe change after
+  argc-=1
+  s=sys.argv[current_argv+1]
+  if s=='m':
+    magic=1
+    current_argv+=1
+    magic_layer+=sys.argv[current_argv]
+    argc-=1
+  elif s=='c':
+    cif=1
+    current_argv+=1
+    output_file +="logo.cif"
+    cif_layer +=sys.argv[current_argv]
+    argc-=1
+  elif s=='t':
+    argc-=1
+    current_argv+=1
+    magic_tech+=sys.argv[current_argv]
+  elif s=='v':
+    view_array=int(sys.argv[current_argv+1])
+    argc-=1
+  elif s=='A':
+    thresh_after=int(sys.argv[current_argv+1])
+    smooth_after=1
+    argc-=1
+  elif s=='B':
+    thresh_before=int(sys.argv[current_argv+1])
+    smooth_before=1
+    argc-=1
+  elif s=='h':
+    error_mess()
+  elif s=='e':
+    error_correct=1
+  elif s=='w':
+    min_width=int(sys.argv[current_argv+1])
+    argc-=1
+  elif s=='s':
+    scale_factor=float(sys.argv[current_argv+1])
+    argc-=1
+  else:
+    break
+if (argc):
+  input=1
+  argv+=1
+  input_file+=sys.argv[current_argv]
+  current_argv+=1
+  argc-=1
+  fpin=open(input_file,"r")
+  if fpin == NULL:
+      print("cannot open input file \n")
+      exit(1)
+  fpin.close()
+if argc:
+  output_file=sys.argv[current_argv]
+  current_argv+=1
+  argc-=1
+  fpout=open(output_file,"w")
+  if fpout == NULL:
+    print("cannot open output file \n")
+    exit(1)
+  fpout.close()
+  if argc:  
+    error_mess()
+    exit(0)
+  if input == 0:  
+    error_mess()
+  if cif ==1 and magic ==1:
+    print("\n you can not have both cif and magic options active, just select one\n")
+    exit(1)
+  if min_width < 1:
+    print("\n the minimum width should be an integer grater than '1'\n")
+    exit(1)
+chiplogo()
+print("\n   Logo successfully generated \n")
  
+exit(0)
 
 
 

@@ -39,14 +39,14 @@ cif_lambda=50
 error_correct=0
 smooth_before=0
 smooth_after=0
-image_out[ARRAY_SIZE]
+image_out=[]
 ARRAY_XSIZE=1
 ARRAY_YSIZE=1
 
 DEBUG=0
 view_array=1000
-array[ARRAY_SIZE]
-array2[ARRAY_SIZE]
+array=[]
+array2=[]
 cif=0
 magic=0
 input=0
@@ -83,9 +83,7 @@ def error_mess():
   exit(1)
 
 def chiplogo():
-  fpin
-  fpout
-  tmp_c
+  tmp_c=""
   width=1
   space=1
   scale=1
@@ -105,8 +103,8 @@ def chiplogo():
   space=min_space
   threshold_before=thresh_before
   threshold_after=thresh_after
-
-  if (fpin==open(input_file,"r")) == NULL: 
+  fpin=open(input_file,"r")
+  if fpin == NULL: 
     print("cannot open input file\n")
     return
   
@@ -116,13 +114,14 @@ def chiplogo():
     return
   
   i=0
-  fpin.read(temp)
-  if(strcmp(tmp,"P1")):
+  fpin.read(tmp)
+  #check here
+  if tmp=="P1":
     print("This doesn't seem like a pbm file, because it doesn't have the P1 header")
   fpin.read(tmp)
-  while not strncmp(tmp,"#",1):
+  while not tmp=="#":
     fpin.read("%*[^\n]")
-    getc(fpin)
+    #getc(fpin) check later
     fpin.read(tmp)
 
   
@@ -134,18 +133,18 @@ def chiplogo():
     tmp=""
     print("array has a size of zero\n")
     return
-  for k in range(ARRAY_SIZE):
+  for i in range(ARRAY_SIZE):
   
-    image_out[k]=int(ARRAY_YSIZE+2*width+2)
-    if image_out[k]==NULL:
+    image_out.append(int(ARRAY_YSIZE+2*width+2))
+    if image_out[i]==NULL:
       print("there is not enough memory\n")
       exit(0)
-    array[k]=int(ARRAY_YSIZE+2*width+2)
-    if array[k]==NULL:
+    array[i]=int(ARRAY_YSIZE+2*width+2)
+    if array[i]==NULL:
       print("there is not enough memory\n")
       exit(0)
-    array2[k]=int(ARRAY_YSIZE+2*width+2)
-    if array2[k]==NULL:
+    array2.append(int(ARRAY_YSIZE+2*width+2))
+    if array2[i]==NULL:
       print("there is not enough memory\n")
       exit(0)
     
@@ -179,7 +178,7 @@ def chiplogo():
     for column in range(y):
       row=0
       for row in range(x):
-      array[row][column]=array2[row][column]+array[row][column]
+        array[row][column]=array2[row][column]+array[row][column]
  
   if smooth_after==1:
     smooth_array(array,x,y,threshold_after,width)
@@ -201,8 +200,11 @@ def chiplogo():
     print("after copy\n")
  
   if magic_choice==1 and cif_choice ==0:
-    if (fpout==fopen(output_file,"w")) == NULL: 
+    fpout=open(output_file,"w")
+    if fpout== NULL: 
         print("cannot open output file\n")
+        return
+      #check last
   row=0
   for row in range(x):
     if array[row][column] ==1:

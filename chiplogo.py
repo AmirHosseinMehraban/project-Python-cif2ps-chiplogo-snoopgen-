@@ -6,22 +6,18 @@ import sys
 from zmq import NULL
 
 def find_error(array,error,x,y,width,space):
-    tmp=0
-    k=0
-    tmp1=0
     for i in range(ARRAY_XSIZE+1):
         for j in range(ARRAY_YSIZE+1):
             error[i][j]=0
 def display_array(x,y):
   j=0
-  row,column,j
   print("Here is an approximate view of what you will get!!\n\n")
   if(view_array==1000): 
     j=y/80+1
   else: 
     j=view_array
-  for row in range(0,y,j):
-    for column in range(0,x,j):
+  for row in range(y,j):
+    for column in range(x,j):
       if array[column][row] == 1:
         print("*")
       else: 

@@ -1,28 +1,35 @@
-from array import array
 from ast import arg
 from fileinput import close
 import sys
 
 from zmq import NULL
+'''
+This is chiplogo a logo generator for VLSI chips.
+The format is either magic or cif.
+The layer name and technology cab be selected as a command line option.
 
-def find_error(array,error,x,y,width,space):
-    for i in range(ARRAY_XSIZE+1):
-        for j in range(ARRAY_YSIZE+1):
-            error[i][j]=0
-def display_array(x,y):
-  j=0
-  print("Here is an approximate view of what you will get!!\n\n")
-  if(view_array==1000): 
-    j=y/80+1
-  else: 
-    j=view_array
-  for row in range(y,j):
-    for column in range(x,j):
-      if array[column][row] == 1:
-        print("*")
-      else: 
-        print(" ")
-    print('\n')
+
+To compile the file just type "make".
+
+Enjoy,
+
+March 20th 1995
+
+Alireza Moini
+Centre for GaAs VLSI Technology
+The University of Adelaide
+SA 5005
+Australia
+
+moini@eleceng.adelaide.edu.au
+
+Last improvements
+
+- Major bug fixes
+- Creates a layout with less error
+- It prints an approximate view of the layout
+- The magic layout is now upright, so you don't need to upsidedown it
+'''
 ARRAY_SIZE=1024
 min_width=2
 min_space=2
@@ -38,17 +45,20 @@ smooth_after=0
 image_out=[]
 ARRAY_XSIZE=1
 ARRAY_YSIZE=1
-
+input_file=""
+output_file=""
+cif_layer=""
+magic_layer=""
+magic_tech=""
 DEBUG=0
 view_array=1000
-array=[]
+array1=[]
 array2=[]
 cif=0
 magic=0
 input=0
 output=0
-x_corner
-y_corner
+
 
 def error_mess():
   print("\n USAGE :\n chiplogo [-c cif_layer_name] [-m magic_layer_name] [-w width] [-s scale] [-t tech_name] [-e] [-v view_array] [-B  threshold_before] [-A threshold_after] input_file [output_file]\n\n")
@@ -89,9 +99,6 @@ def chiplogo():
   base=1
   junk=0
   max_col=35
-  max_row
-  x_corner
-  y_corner
   threshold_after=4
   threshold_before=4
   scale=scale_factor
@@ -103,7 +110,7 @@ def chiplogo():
   if fpin == NULL: 
     print("cannot open input file\n")
     return
-  
+  tmp=""
   if tmp==NULL:
     print("there is not enough memory\n")
     close(fpin)
@@ -135,8 +142,8 @@ def chiplogo():
     if image_out[i]==NULL:
       print("there is not enough memory\n")
       exit(0)
-    array[i]=int(ARRAY_YSIZE+2*width+2)
-    if array[i]==NULL:
+    array1[i]=int(ARRAY_YSIZE+2*width+2)
+    if array1[i]==NULL:
       print("there is not enough memory\n")
       exit(0)
     array2.append(int(ARRAY_YSIZE+2*width+2))
@@ -151,45 +158,45 @@ def chiplogo():
   row=0
   column=0
   for k in range(x*y):
-    fpin.read(array[k-((k/x)*x)][k/x])
+    fpin.read(array1[k-((k/x)*x)][k/x])
     
   #print(k-((k/x)*x),(k/x),array[k-((k/x)*x)][k/x])
   #i have to correct print 
   if DEBUG==1:
     print("before enlarge\n")
-  enlarge_array(array,x,y,width+2)
+  enlarge_array(array1,x,y,width+2)
   if(DEBUG==1):
     print("after enlarge\n")
   if(smooth_before==1):
-    smooth_array(array,x,y,threshold_before,width)
+    smooth_array(array1,x,y,threshold_before,width)
   
  
   if(error_correct==1):
     if(DEBUG==1):
       print("before error\n")
-    find_error(array,array2,x,y,width,space)
+    find_error(array1,array2,x,y,width,space)
     if(DEBUG==1):
       print("after error\n")
     column=0
     for column in range(y):
       row=0
       for row in range(x):
-        array[row][column]=array2[row][column]+array[row][column]
+        array1[row][column]=array2[row][column]+array1[row][column]
  
   if smooth_after==1:
-    smooth_array(array,x,y,threshold_after,width)
+    smooth_array(array1,x,y,threshold_after,width)
   
 
   if DEBUG==1:
     print("before shrink\n")
-  shrink_array(array,x,y,width+2)
+  shrink_array(array1,x,y,width+2)
   if DEBUG==1:
     print("after shrink\n")
   i=0
   for i in range(ARRAY_XSIZE):
     j=0
     for j in range(ARRAY_YSIZE):
-      image_out[i][j]=array[i][j]
+      image_out[i][j]=array1[i][j]
     
   
   if(DEBUG==1):
@@ -205,7 +212,7 @@ def chiplogo():
     fpout.write("magic\ntech  %s\ntimestamp 777777777\n", magic_tech)
     fpout.write("<< %s >>\n", magic_layer)
     for row in range(x):
-      if array[row][column] ==1:
+      if array1[row][column] ==1:
         base=scale
         y_corner=y-column
         y_corner[0]=base
@@ -224,7 +231,7 @@ def chiplogo():
       for column in range(y):
         row=0
         for row in range(x):
-          if array[row][column] ==1:
+          if array1[row][column] ==1:
             base=10*scale*width
             y_corner=y-column
             y_corner*=base
@@ -238,7 +245,7 @@ def chiplogo():
   
   i=0
   for i in range(ARRAY_SIZE):
-    array[i]=""
+    array1[i]=""
     array2[i]=""
   if(DEBUG==1):
     print("after free\n")
@@ -248,12 +255,12 @@ def chiplogo():
   if(DEBUG==1):
     print("after close\n")
  
-def shrink_array(array,x,y,width):
+def shrink_array(array1,x,y,width):
   for i in range(x+width-1):
     for j in range(y+width-1):
       if(i>width-1 or j>width-1 ):
-        array[i][j]=array[i+width][j+width]
-def smooth_array(array,x,y,threshold,width):
+        array1[i][j]=array1[i+width][j+width]
+def smooth_array(array1,x,y,threshold,width):
   array2=[]
   total=0
   for i in range(ARRAY_SIZE):
@@ -272,7 +279,7 @@ def smooth_array(array,x,y,threshold,width):
       tmp=0
       for i in range(-(width/2),width/2+1):
         for j in range(-(width/2),width/2+1):
-          tmp+=array[row+i][column+j]*(width/2-max(abs(i),abs(j))+1)
+          tmp+=array1[row+i][column+j]*(width/2-max(abs(i),abs(j))+1)
       if 16*tmp>total*threshold:
          array2[row][column]=1
       else:
@@ -280,7 +287,7 @@ def smooth_array(array,x,y,threshold,width):
         
   for column in range(y):
     for row in range(x):
-      array[row][column]=array2[row][column]
+      array1[row][column]=array2[row][column]
   for i in range(ARRAY_SIZE):
     array2[i]=""
 
@@ -290,16 +297,16 @@ def max(i,j):
     return j
   return i
 
-def enlarge_array(array,x,y,width):
+def enlarge_array(array1,x,y,width):
   for i in range(x+2*width-1,0,-1):
     for j in range(y+2*width-1,0,-1):
       if(i<width) or (j<width) or (i>(x-1+width)) or (j>(y-1+width)): 
-        array[i][j]=0
+        array1[i][j]=0
       
       else:
-        array[i][j]=array[i-width][j-width]
+        array1[i][j]=array1[i-width][j-width]
 
-def find_error(array,error,x,y,width,space):
+def find_error(array1,error,x,y,width,space):
 
   for i in range(ARRAY_XSIZE+1):
     for j in range(ARRAY_YSIZE+1):
@@ -315,14 +322,14 @@ def find_error(array,error,x,y,width,space):
       tmp=0
       tmp1=0
       for k in range(width,1,-1):
-        if (array[i-k][j]+error[i-k][j])>0:
+        if (array1[i-k][j]+error[i-k][j])>0:
           tmp +=1
           tmp1=1
-        if (array[i-k][j]+error[i-k][j])==0 and tmp==1:
+        if (array1[i-k][j]+error[i-k][j])==0 and tmp==1:
           tmp=2
 
       
-      if tmp1<width and tmp1>0 and tmp==1 and array[i][j]==0:
+      if tmp1<width and tmp1>0 and tmp==1 and array1[i][j]==0:
           error[i][j]=1
 
 
@@ -335,13 +342,13 @@ def find_error(array,error,x,y,width,space):
       tmp=0
       tmp1=0
       for k in range(width,1,-1):
-        if(array[i][j-k]+error[i][j-k])>0:
+        if(array1[i][j-k]+error[i][j-k])>0:
           tmp1+=1
           tmp=1
-        if(array[i][j-k]+error[i][j-k])==0 and tmp==1:
+        if(array1[i][j-k]+error[i][j-k])==0 and tmp==1:
           tmp=2
  
-      if(tmp1<width and tmp1>0 and tmp==1 and array[i][j]==0):
+      if(tmp1<width and tmp1>0 and tmp==1 and array1[i][j]==0):
         error[i][j]=1
 
 
@@ -355,7 +362,7 @@ def display_array(x,y):
     j=view_array
   for row in range(0,y,j):
     for column in range(0,x,j):
-      if(array[column][row] == 1):
+      if(array1[column][row] == 1):
         print("*")
       else: 
         print(" ")
@@ -432,7 +439,7 @@ while ((argc==1) and current_argv>0 and (sys.argv == '-')):#maybe change after
     break
 if (argc):
   input=1
-  argv+=1
+  #current_argv+=1
   input_file+=sys.argv[current_argv]
   current_argv+=1
   argc-=1

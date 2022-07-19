@@ -205,31 +205,39 @@ def chiplogo():
         print("cannot open output file\n")
         return
       #check last
-  row=0
-  for row in range(x):
-    if array[row][column] ==1:
-      base=scale
-      y_corner=y-column
-      y_corner=base
-      x_corner=row*base
+    row=0
+    fpout.write("magic\ntech  %s\ntimestamp 777777777\n", magic_tech)
+    fpout.write("<< %s >>\n", magic_layer)
+    for row in range(x):
+      if array[row][column] ==1:
+        base=scale
+        y_corner=y-column
+        y_corner[0]=base
+        x_corner=row*base
+        fpout.write("rect %d %d %d %d\n",x_corner,y_corner,x_corner+base,y_corner+base)
+      fpout.write("<< end >>\n")
     else:
-      if (fpout=fopen(output_file,"w")) == NULL:
+      fpout=open(output_file,"w")
+      if fpout== NULL:
         print("cannot open output file\n")
         return
+      fpout.write("DS 1 %d 2;\n9 logo;\nL %s;\n", cif_lambda, cif_layer)
 
-    column=0
-    for column in range(y):
-      row=0
-      for row in range(x):
-  if array[row][column] ==1:
-    base=10*scale*width
-    y_corner=y-column
-    y_corner*=base
-    x_corner=base*row-width
- 
 
+      column=0
+      for column in range(y):
+        row=0
+        for row in range(x):
+          if array[row][column] ==1:
+            base=10*scale*width
+            y_corner=y-column
+            y_corner*=base
+            x_corner=base*row-width
+            fpout.write("B %d %d %d %d;\n",base+2*width,base,x_corner+(base/2),y_corner+(base/2))
+      
+      fpout.write("DF;\nC 1;\nEnd\n")
   if DEBUG==1:
-    printf("before free\n")
+    print("before free\n")
   display_array(x,y)
   
   i=0
